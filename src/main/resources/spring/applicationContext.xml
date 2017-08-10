@@ -1,0 +1,54 @@
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.1.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-4.1.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-4.1.xsd">
+	
+<context:component-scan base-package="com.doocker.service"/>
+
+<!-- 加载配置文件 -->
+<context:property-placeholder location="classpath:db.properties"/>
+	
+<!-- 配置数据源 连接池 -->
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+	<property name="driverClassName" value="${jdbc.driver}"/>
+	<property name="url" value="${jdbc.url}"/>
+	<property name="username" value="${jdbc.username}"/>
+	<property name="password" value="${jdbc.password}"/>
+</bean>
+<!-- 配置sqlsessionfactory-->
+<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+	<property name="dataSource" ref="dataSource"/>
+	<property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+	<property name="typeHandlersPackage" value="com.lp.po"/>
+</bean>
+<!-- 配置mapper扫描器 生成mapper借口的代理对象 -->
+<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	<property name="basePackage" value="com.lp.mapper"/>
+	<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"/>
+</bean>
+<!-- 事务管理器，主要处理业务层的修改表的方法，查询没有事务，保证业务层修改的方法中所有的修改表的操作性的原子性（如果成功提交事务，（session.commit()），如果失败回滚事务（session.rollback() ）） -->
+<bean id="transactionManager"  class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource"></property>
+</bean>
+<!-- 通知用来处理切面抛出的异常，由事务管理器去处理这个异常 -->
+<tx:advice id="advice" transaction-manager="transactionManager">
+	<tx:attributes>
+		<tx:method name="insert*" propagation="REQUIRED" />
+		<tx:method name="update*" propagation="REQUIRED"/>
+	</tx:attributes>
+</tx:advice> 
+ 
+<!-- 切面 com.lp.service包下面所有的类的所有的方法（无论有多少个参数） -->
+<aop:advisor advice-ref="advice" pointcut="execution(* com.doocker.service.*.*.*(..))"/>
+	</aop:config>
+</beans>

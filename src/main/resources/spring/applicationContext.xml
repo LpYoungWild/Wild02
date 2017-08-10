@@ -49,6 +49,5 @@
 </tx:advice> 
  
 <!-- 切面 com.lp.service包下面所有的类的所有的方法（无论有多少个参数） -->
-<aop:advisor advice-ref="advice" pointcut="execution(* com.doocker.service.*.*.*(..))"/>
-	</aop:config>
+
 </beans>
